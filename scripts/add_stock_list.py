@@ -1,4 +1,4 @@
-"""테스트"""
+"""종목 리스트 갱신하는 파이썬 스크립트"""
 import asyncio
 import urllib.request
 import zipfile
@@ -31,7 +31,7 @@ async def get_kospi_master_dataframe(base_dir: str, db: Prisma):
             rf1_3 = rf1[21:].strip()
             if rf1_1.isdigit() is True:
                 print(rf1_1, rf1_3)
-                # rf2 = row[-228:] 
+                # rf2 = row[-228:]
                 try:
                     await db.stock.create(
                          {
@@ -81,7 +81,7 @@ async def get_kospi_master_dataframe(base_dir: str, db: Prisma):
 
 async def main() -> None:
     """
-    a
+    월,화,수,목,금 요일날 8시 30분에 종목 리스트 갱신
     """
     db = Prisma()
     await db.connect()

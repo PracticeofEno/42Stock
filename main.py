@@ -4,7 +4,7 @@ from prisma import Prisma
 from classes.ksi_api import KsiApi
 from classes.repository import Repository
 
-async def main() -> None:
+async def main():
     """
     a
     """
