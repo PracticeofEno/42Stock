@@ -25,6 +25,7 @@ async def main() -> None:
     print(today)
     for stock in stocks:
         await ksi_api_client.get_today_data(stock.stock_code, today)
+        print(f'{stock.stock_name} done')
     print("done")
 
 

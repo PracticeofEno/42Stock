@@ -40,3 +40,44 @@ class Repository:
             "volume": float(volume),
             "mount": float(mount)
         })
+
+    async def get_daily_by_stock_name(self, stock_name: str):
+        """특정 주식의 일별 데이터 가져오기"""
+        dailys = await self.db.daily.find_many(
+            where={
+                'stock_name': stock_name
+            },
+            order={
+                'stck_bsop_date': 'asc'
+            }
+        )
+        return dailys
+
+    async def update_mov_value(
+        self,
+        stock_name: str,
+        stck_bsop_date: str,
+        mov_5: float,
+        mov_10: float,
+        mov_20: float,
+        mov_60: float,
+        mov_120: float,
+        mov_240: float
+    ):
+        """5일 이평선 값 업데이트"""
+        await self.db.daily.update(
+            where={
+                'stock_name_stck_bsop_date': {
+                    'stock_name': stock_name,
+                    'stck_bsop_date': stck_bsop_date
+                }
+            },
+            data={
+                'mov_5': mov_5,
+                'mov_10': mov_10,
+                'mov_20': mov_20,
+                'mov_60': mov_60,
+                'mov_120': mov_120,
+                'mov_240': mov_240
+            }
+        )

@@ -3,6 +3,7 @@ import asyncio
 from prisma import Prisma
 from classes.ksi_api import KsiApi
 from classes.repository import Repository
+from classes.moving_average import MovingAverage
 
 async def main():
     """
@@ -11,16 +12,34 @@ async def main():
     db = Prisma()
     await db.connect()
     repo = Repository(db)
-
-    tmp = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjMzNjIwODQ0LTY4NDEtNGQwYy1hNDc5LTA5ODdmYzcyMGQ1YyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzA5OTY1NzM5LCJpYXQiOjE3MDk4NzkzMzksImp0aSI6IlBTTWpSVjNSVmlGVUtsZmZyVGlRUVJOMTEwTHFDWGNvR3ZSMSJ9.ugFEHpiGsi7_U2tIeHEbhW6Gx960wgglQXETS0_y-hKrsaosYriezvTS3jf8PfJEqNhaSj_gUGkbCCCtaBJSLg"
-    ksi_api = KsiApi(tmp, repo)
-    # res = await ksi_api.get_v_token()
-    # print(res)
-    stocks = await ksi_api.get_stock_list()
+    stocks = await repo.get_stock_list()
+    mov_5 = MovingAverage(5)
+    mov_10 = MovingAverage(10)
+    mov_20 = MovingAverage(20)
+    mov_60 = MovingAverage(60)
+    mov_120 = MovingAverage(120)
+    mov_240 = MovingAverage(240)
     for stock in stocks:
-        if stock.stock_code <= '253160':
-            continue
-        await ksi_api.get_daily_data(stock.stock_code)
+        dailys = await repo.get_daily_by_stock_name(stock.stock_name)
+        for daily in dailys:
+            mov_5.push_data(daily.stck_clpr)
+            mov_10.push_data(daily.stck_clpr)
+            mov_20.push_data(daily.stck_clpr)
+            mov_60.push_data(daily.stck_clpr)
+            mov_120.push_data(daily.stck_clpr)
+            mov_240.push_data(daily.stck_clpr)
+
+            await repo.update_mov_value(
+                stock.stock_name,
+                daily.stck_bsop_date,
+                mov_5.get_moving_average(),
+                mov_10.get_moving_average(),
+                mov_20.get_moving_average(),
+                mov_60.get_moving_average(),
+                mov_120.get_moving_average(),
+                mov_240.get_moving_average()
+            )
+        print(f'{stock.stock_name} daily moving average done')
     print("done")
 
 

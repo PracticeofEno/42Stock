@@ -122,6 +122,7 @@ class KsiApi:
             for daily in dailys:
                 if 'stck_bsop_date' in daily:
                     if daily['stck_bsop_date'] != day:
+                        print(f'{stock_code} is not today')
                         break
                     try:
                         await self.repo.create_daily_data(
@@ -134,6 +135,6 @@ class KsiApi:
                             volume=daily['acml_vol'],
                             mount=daily['acml_tr_pbmn']
                         )
-                    except: # pylint: disable=W0702
-                        print("로깅에 실패한 경우")
-                        pass
+                    except Exception as e: # pylint: disable=W0702
+                        print(str(e))
+                        break
