@@ -4,7 +4,6 @@ import urllib.request
 import zipfile
 import os
 import sys
-from prisma import Prisma
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from classes import stcok_db # pylint: disable=C0413
 
@@ -95,8 +94,6 @@ async def main() -> None:
     #                  '영업이익', '경상이익', '당기순이익', 'ROE', '기준년월',
     #                  '시가총액', '그룹사코드', '회사신용한도초과', '담보대출가능', '대주가능'
     #                  ]
-    
-
 
 if __name__ == '__main__':
     asyncio.run(main())
