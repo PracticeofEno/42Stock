@@ -3,7 +3,9 @@ import asyncio
 import urllib.request
 import zipfile
 import os
-from prisma import Prisma
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+from classes import stcok_db # pylint: disable=C0413
 
 def kospi_master_download(base_dir: str):
     """코스피 종목 리스트 리턴"""
@@ -19,29 +21,46 @@ def kospi_master_download(base_dir: str):
     if os.path.exists("kospi_code.zip"):
         os.remove("kospi_code.zip")
 
+async def main() -> None:
+    """
+    월,화,수,목,금 요일날 8시 30분에 종목 리스트 갱신
+    """
+    db_stock = stcok_db.StockDB()
+    await db_stock.connect()
+    base_dir = os.getcwd()
+    kospi_master_download(base_dir)
 
-async def get_kospi_master_dataframe(base_dir: str, db: Prisma):
-    """DB에 종목코드 써 넣기"""
     file_name = base_dir + "/kospi_code.mst"
+    f = open(file_name, mode="r", encoding="cp949")
+    stocks = []
+    # 종목명, 종목코드 추출
+    for row in f:
+        rf1 = row[0:len(row) - 228]
+        rf1_1 = rf1[0:9].rstrip()
+        rf1_3 = rf1[21:].strip()
+        if rf1_1.isdigit() is True:
+            stocks.append({
+                'stock_name': rf1_3,
+                'stock_code': rf1_1
+            })
+    f.close()
 
-    with open(file_name, mode="r", encoding="cp949") as f:
-        for row in f:
-            rf1 = row[0:len(row) - 228]
-            rf1_1 = rf1[0:9].rstrip()
-            rf1_3 = rf1[21:].strip()
-            if rf1_1.isdigit() is True:
-                print(rf1_1, rf1_3)
-                # rf2 = row[-228:]
-                try:
-                    await db.stock.create(
-                         {
-                            'stock_name': rf1_3,
-                            'stock_code': rf1_1,
-                        }
-                    )
-                except Exception as e: # pylint: disable=W0702 W0718
-                    print(e)
+    # 상폐된 종목이라면 삭제
+    get_stocks = await db_stock.get_stock_list()
+    for get_stock in get_stocks:
+        if get_stock.stock_name not in [stock['stock_name'] for stock in stocks]:
+            await db_stock.stock_remove(get_stock.stock_name)
+            print("remove stock: " + get_stock.stock_name)
 
+    # DB에 추가
+    for stock in stocks:
+        exist = await db_stock.stock_exist(stock['stock_name'])
+        if exist is None:
+            await db_stock.create_stock(stock['stock_name'], stock['stock_code'])
+            print("add stock: " + stock['stock_name'] + " " + stock['stock_code'])
+
+    print("Done")
+    os.remove(file_name)
     # part1_columns = ['단축코드', '표준코드', '한글명']
 
     # field_specs = [2, 1, 4, 4, 4,
@@ -75,22 +94,6 @@ async def get_kospi_master_dataframe(base_dir: str, db: Prisma):
     #                  '영업이익', '경상이익', '당기순이익', 'ROE', '기준년월',
     #                  '시가총액', '그룹사코드', '회사신용한도초과', '담보대출가능', '대주가능'
     #                  ]
-    print("Done")
-    os.remove(file_name)
-
-
-async def main() -> None:
-    """
-    월,화,수,목,금 요일날 8시 30분에 종목 리스트 갱신
-    """
-    db = Prisma()
-    await db.connect()
-    base_dir = os.getcwd()
-    kospi_master_download(base_dir)
-    await db.stock.delete_many()
-    await get_kospi_master_dataframe(base_dir, db)
-    await db.disconnect()
-
 
 if __name__ == '__main__':
     asyncio.run(main())
