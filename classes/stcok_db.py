@@ -72,17 +72,79 @@ class StockDB:
             "mount": float(mount)
         })
 
-    async def get_daily_by_stock_name(self, stock_name: str):
-        """특정 주식의 일별 데이터 가져오기"""
-        dailys = await self.db.daily.find_many(
-            where={
-                'stock_name': stock_name
-            },
-            order={
-                'stck_bsop_date': 'asc'
-            }
-        )
-        return dailys
+    async def create_today_data(
+        self,
+        stock_name: str,
+        stck_bsop_date: str,
+        stck_clpr: float,
+        stck_oprc: float,
+        stck_hgpr: float,
+        stck_lwpr: float,
+        volume: float,
+        mount: float,
+        mov_5: float,
+        mov_10: float,
+        mov_20: float,
+        mov_60: float,
+        mov_120: float,
+        mov_240: float,
+        volume_5: float,
+        volume_10: float,
+        volume_20: float,
+    ):
+        """일별 데이터 생성"""
+        await self.db.daily.create({
+            "stock_name": stock_name,
+            "stck_bsop_date": stck_bsop_date,
+            "stck_clpr": stck_clpr,
+            "stck_oprc": stck_oprc,
+            "stck_hgpr": stck_hgpr,
+            "stck_lwpr": stck_lwpr,
+            "volume": volume,
+            "mount": mount,
+            "mov_5": mov_5,
+            "mov_10": mov_10,
+            "mov_20": mov_20,
+            "mov_60": mov_60,
+            "mov_120": mov_120,
+            "mov_240": mov_240,
+            "volume_5": volume_5,
+            "volume_10": volume_10,
+            "volume_20": volume_20
+        })
+
+    async def get_daily_by_stock_name(self, stock_name: str, date: str = None):
+        """
+        특정 주식의 일별 데이터 가져오기
+        
+        날짜옵션이 없다면 모든 데이터를 가져옴
+        
+        날짜옵션이 있다면 해당 날짜로부터 240일치 데이터를 가져옴
+        """
+        if date is None:
+            dailys = await self.db.daily.find_many(
+                where={
+                    'stock_name': stock_name
+                },
+                order={
+                    'stck_bsop_date': 'asc'
+                }
+            )
+            return dailys
+        else:
+            dailys = await self.db.daily.find_many(
+                where={
+                    'stock_name': stock_name,
+                    'stck_bsop_date': {
+                        'lte': date
+                    }
+                },
+                order={
+                    'stck_bsop_date': 'desc'
+                },
+                take=240
+            )
+            return dailys
 
     async def update_mov_value(
         self,
@@ -93,7 +155,10 @@ class StockDB:
         mov_20: float,
         mov_60: float,
         mov_120: float,
-        mov_240: float
+        mov_240: float,
+        volume_5: float,
+        volume_10: float,
+        volume_20: float
     ):
         """5일 이평선 값 업데이트"""
         await self.db.daily.update(
@@ -109,6 +174,9 @@ class StockDB:
                 'mov_20': mov_20,
                 'mov_60': mov_60,
                 'mov_120': mov_120,
-                'mov_240': mov_240
+                'mov_240': mov_240,
+                "volume_5": volume_5,
+                "volume_10": volume_10,
+                "volume_20": volume_20
             }
         )

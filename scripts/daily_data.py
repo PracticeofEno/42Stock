@@ -1,33 +1,79 @@
-"""매일 장 마감 후 실행되는 스크립트. 당일 데이터를 수집하는걸 목표로 함"""
+"""테스트"""
 import asyncio
-import sys
 import os
+import sys
 from datetime import datetime
-from prisma import Prisma
-# 다른폴더에 있는 py를 import하기 위한 설정
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from classes import ksi_api, stcok_db # pylint: disable=C0413
-
-async def main() -> None:
+from classes import stcok_db, ksi_api, moving_average # pylint: disable=C0413
+async def main():
     """
     a
     """
-    db = Prisma()
-    await db.connect()
-    repo = stcok_db.Repository(db)
+    v_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImVjMzdjNjI5LWJkMDEtNDE4Zi04ODUxLWY2MDhmZjMxNDUzOCIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwMzIxNjgzLCJpYXQiOjE3MTAyMzUyODMsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.0jLCei-TF3pojxzw6_iidI-Kj5iO4JH0fmc4S95eWwTSCXwFaFjUqYlbFCLFODSQi28E5Sb7g99bPEYbu7QKSg"
+    ksi_api_client = ksi_api.KsiApi(v_token)
+    await ksi_api_client.get_v_token()
+    db_stock = stcok_db.StockDB()
+    await db_stock.connect()
 
-    tmp = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjdjN2U3MzkyLTFiZDktNDQyOS05ODc0LTRkMDhkZDg3OGE5ZCIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwMTY0MjY1LCJpYXQiOjE3MTAwNzc4NjUsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.AhAZybgII5NNDs7Tpa8R6ZapFbMEePyjYQLUuDmwwQjK09zpPcLxlv-vYeBJqaRnyRgVTHefuG6-6hyF8ud4OQ"
-    ksi_api_client =  ksi_api.KsiApi(tmp, repo)
-    # await ksi_api2.get_v_token()
-    # print(res)
-    stocks = await ksi_api_client.get_stock_list()
+    stocks = await db_stock.get_stock_list()
     today = datetime.today().strftime('%Y%m%d')
-    print(today)
-    for stock in stocks:
-        await ksi_api_client.get_today_data(stock.stock_code, today)
-        print(f'{stock.stock_name} done')
-    print("done")
+    mov_5 = moving_average.MovingAverage(5)
+    mov_10 = moving_average.MovingAverage(10)
+    mov_20 = moving_average.MovingAverage(20)
+    mov_60 = moving_average.MovingAverage(60)
+    mov_120 = moving_average.MovingAverage(120)
+    mov_240 = moving_average.MovingAverage(240)
+    volume_5 = moving_average.MovingAverage(5)
+    volume_10 = moving_average.MovingAverage(10)
+    volume_20 = moving_average.MovingAverage(20)
 
+    # 전 종목 반복
+    for stock in stocks:
+        # 240일치 데이터를 가져오기
+        dailys_240 = await db_stock.get_daily_by_stock_name(stock.stock_name, today)
+        # 240일치 이평선 만들기
+        for daily in dailys_240:
+            mov_5.push_data(daily.stck_clpr)
+            mov_10.push_data(daily.stck_clpr)
+            mov_20.push_data(daily.stck_clpr)
+            mov_60.push_data(daily.stck_clpr)
+            mov_120.push_data(daily.stck_clpr)
+            mov_240.push_data(daily.stck_clpr)
+            volume_5.push_data(daily.volume)
+            volume_10.push_data(daily.volume)
+            volume_20.push_data(daily.volume)
+        # 오늘 데이터를 가져오기
+        today_data = await ksi_api_client.get_today_data(stock.stock_code)
+        # 이평선 갱신
+        mov_5.push_data(float(today_data['stck_clpr']))
+        mov_10.push_data(float(today_data['stck_clpr']))
+        mov_20.push_data(float(today_data['stck_clpr']))
+        mov_120.push_data(float(today_data['stck_clpr']))
+        mov_240.push_data(float(today_data['stck_clpr']))
+        volume_5.push_data(float(today_data['volume']))
+        volume_10.push_data(float(today_data['volume']))
+        volume_20.push_data(float(today_data['volume']))
+        await db_stock.create_today_data(
+            stock.stock_name,
+            today_data['stck_bsop_date'],
+            float(today_data['stck_clpr']),
+            float(today_data['stck_oprc']),
+            float(today_data['stck_hgpr']),
+            float(today_data['stck_lwpr']),
+            float(today_data['volume']),
+            float(today_data['mount']),
+            mov_5.get_moving_average(),
+            mov_10.get_moving_average(),
+            mov_20.get_moving_average(),
+            mov_60.get_moving_average(),
+            mov_120.get_moving_average(),
+            mov_240.get_moving_average(),
+            volume_5.get_moving_average(),
+            volume_10.get_moving_average(),
+            volume_20.get_moving_average()
+        )
+        print(f'{stock.stock_name} daily data inserted')
+    print("done")
 
 
 if __name__ == '__main__':

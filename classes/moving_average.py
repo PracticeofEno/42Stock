@@ -23,5 +23,5 @@ class MovingAverage:
     def get_moving_average(self):
         """이동평균선 계산"""
         if self.check():
-            return sum(self.list) / self.mov_avg
+            return round(sum(self.list) / self.mov_avg)
         return 0
