@@ -6,7 +6,7 @@ from datetime import datetime
 from prisma import Prisma
 # 다른폴더에 있는 py를 import하기 위한 설정
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from classes import ksi_api, repository # pylint: disable=C0413
+from classes import ksi_api, stcok_db # pylint: disable=C0413
 
 async def main() -> None:
     """
@@ -14,7 +14,7 @@ async def main() -> None:
     """
     db = Prisma()
     await db.connect()
-    repo = repository.Repository(db)
+    repo = stcok_db.Repository(db)
 
     tmp = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjdjN2U3MzkyLTFiZDktNDQyOS05ODc0LTRkMDhkZDg3OGE5ZCIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwMTY0MjY1LCJpYXQiOjE3MTAwNzc4NjUsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.AhAZybgII5NNDs7Tpa8R6ZapFbMEePyjYQLUuDmwwQjK09zpPcLxlv-vYeBJqaRnyRgVTHefuG6-6hyF8ud4OQ"
     ksi_api_client =  ksi_api.KsiApi(tmp, repo)

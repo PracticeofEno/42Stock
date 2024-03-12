@@ -1,10 +1,15 @@
 """repository Class"""
 from prisma import Prisma
 
-class Repository:
+class StockDB:
     """Repository Class"""
-    def __init__(self, prisma: Prisma):
-        self.db = prisma
+    def __init__(self):
+        db = Prisma()
+        self.db = db
+
+    async def connect(self):
+        """DB에 연결"""
+        await self.db.connect()
 
     async def get_stock_list(self):
         """주식 리스트 가져오기"""
@@ -17,6 +22,32 @@ class Repository:
             {
                 'stock_name': stock_name,
                 'stock_code': stock_code,
+            }
+        )
+
+    async def delete_stock_table(self):
+        """주식 테이블 삭제"""
+        await self.db.stock.delete_many()
+
+    async def stock_exist(self, stock_name: str):
+        """종목 존재 여부 확인"""
+        stock = await self.db.stock.find_first(
+            where={
+                'stock_name': stock_name
+            }
+        )
+        return stock
+
+    async def stock_remove(self, stock_name: str):
+        """종목 삭제, 삭제된 종목의 일봉 데이터도 제거함"""
+        await self.db.stock.delete_many(
+            where={
+                'stock_name': stock_name
+            }
+        )
+        await self.db.daily.delete_many(
+            where={
+                'stock_name': stock_name
             }
         )
 

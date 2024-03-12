@@ -2,7 +2,7 @@
 import asyncio
 from prisma import Prisma
 from classes.ksi_api import KsiApi
-from classes.repository import Repository
+from classes.stcok_db import Repository
 from classes.moving_average import MovingAverage
 
 async def main():

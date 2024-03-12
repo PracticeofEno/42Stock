@@ -1,24 +1,15 @@
 """KSI APi Class"""
 import os
 import requests
-from prisma import Prisma
-from classes.repository import Repository
-
 
 class KsiApi:
     """KSI Api Class"""
-    def __init__(self, at: str = "", repo: Repository = Repository(Prisma())):
+    def __init__(self, at: str = ""):
         self.vts = os.getenv('VIR_VTS', '')
         self.app_key = os.getenv('VIR_APP_KEY', '')
         self.app_secret = os.getenv('VIR_APP_SECRET', '')
         self.access_token = at
-        self.repo = repo
         print(self.vts, self.app_key, self.app_secret)
-
-    async def get_stock_list(self):
-        """주식 리스트 가져오기"""
-        stocks = await self.repo.get_stock_list()
-        return stocks
 
     async def get_v_token(self):
         """일봉데이터 가져오기"""
