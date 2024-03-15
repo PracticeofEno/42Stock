@@ -5,7 +5,7 @@ import zipfile
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-from classes import stcok_db # pylint: disable=C0413
+from classes import stcok_db, ksi_api # pylint: disable=C0413
 
 def kospi_master_download(base_dir: str):
     """코스피 종목 리스트 리턴"""
@@ -47,13 +47,24 @@ async def main() -> None:
 
     # 상폐된 종목이라면 삭제
     get_stocks = await db_stock.get_stock_list()
+    ksi_api_client = ksi_api.KsiApi()
+    # ksi_api_client.access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjViZjgxYzE1LWQyNDAtNDQ5NC04YjI5LThlNTExN2I1NWE0MyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwNTUxMjM2LCJpYXQiOjE3MTA0NjQ4MzYsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.P6Rl6G5thkZErh6_GUtJcONADUpLWGa4edLIii2uuwXPRzUie-olvAV3c6Z97c_uKuriOrcEd4DJJ7Dj3x7SIg"
+    cant_trade_stocks = []
+    await ksi_api_client.get_v_token()
     for get_stock in get_stocks:
-        if get_stock.stock_name not in [stock['stock_name'] for stock in stocks]:
+        stock_names = [stock['stock_name'] for stock in stocks]
+        if get_stock.stock_name not in stock_names:
             await db_stock.stock_remove(get_stock.stock_name)
             print("remove stock: " + get_stock.stock_name)
-
+        can_trade =  await ksi_api_client.check_available_trade(get_stock.stock_code)
+        if can_trade is False:
+            cant_trade_stocks.append(get_stock.stock_name)
+            await db_stock.stock_remove(get_stock.stock_name)
+            print("remove stock: " + get_stock.stock_name + " because can't trading")
     # DB에 추가
     for stock in stocks:
+        if stock['stock_name'] in cant_trade_stocks:
+            continue
         exist = await db_stock.stock_exist(stock['stock_name'])
         if exist is None:
             await db_stock.create_stock(stock['stock_name'], stock['stock_code'])

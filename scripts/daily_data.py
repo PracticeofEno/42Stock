@@ -9,8 +9,8 @@ async def main():
     """
     a
     """
-    v_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImVjMzdjNjI5LWJkMDEtNDE4Zi04ODUxLWY2MDhmZjMxNDUzOCIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwMzIxNjgzLCJpYXQiOjE3MTAyMzUyODMsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.0jLCei-TF3pojxzw6_iidI-Kj5iO4JH0fmc4S95eWwTSCXwFaFjUqYlbFCLFODSQi28E5Sb7g99bPEYbu7QKSg"
-    ksi_api_client = ksi_api.KsiApi(v_token)
+    # v_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImVjMzdjNjI5LWJkMDEtNDE4Zi04ODUxLWY2MDhmZjMxNDUzOCIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwMzIxNjgzLCJpYXQiOjE3MTAyMzUyODMsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.0jLCei-TF3pojxzw6_iidI-Kj5iO4JH0fmc4S95eWwTSCXwFaFjUqYlbFCLFODSQi28E5Sb7g99bPEYbu7QKSg"
+    ksi_api_client = ksi_api.KsiApi()
     await ksi_api_client.get_v_token()
     db_stock = stcok_db.StockDB()
     await db_stock.connect()

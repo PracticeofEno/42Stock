@@ -67,7 +67,7 @@ class KsiApi:
             'tr_id': 'FHKST03010100'
         }
 
-        last_day = "end_date"
+        last_day = end_date
         res_list = []
         # 받아온 데이터
         while last_day >= fid_input_date_1:
@@ -93,6 +93,9 @@ class KsiApi:
                         "mount": daily['acml_tr_pbmn']
                     })
                     last_day = daily['stck_bsop_date']
+            else:
+                print(response.status_code)
+                break
             fid_input_date_2 = str(int(last_day) - 1)
         return res_list
 
@@ -139,3 +142,30 @@ class KsiApi:
                     "volume": daily['acml_vol'],
                     "mount": daily['acml_tr_pbmn']
                 }
+
+    async def check_available_trade(self, stock_code:str):
+        """주식 기본 조회"""
+        if self.access_token == "":
+            print("access_token not found. must call get_v_token() before function")
+            return
+
+        headers = {
+            'content-type': 'application/json',
+            'authorization': 'Bearer ' + self.access_token,
+            'appkey': self.app_key,
+            'appsecret': self.app_secret,
+            'tr_id': 'CTPF1002R',
+            'custtype': 'P'
+        }
+
+        # 받아온 데이터
+        url = f"{self.vts}/uapi/domestic-stock/v1/quotations/search-stock-info?PDNO={stock_code}&PRDT_TYPE_CD=300" # pylint: disable=C0301
+        response = requests.get(url=url, headers=headers, timeout=5)
+        if response.status_code == 200:
+            res_json= response.json()
+            trade = res_json['output']['tr_stop_yn']
+            if trade == "Y":
+                return False
+            else:
+                return True
+            

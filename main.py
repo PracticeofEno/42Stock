@@ -17,46 +17,36 @@ async def main():
     await db_stock.connect()
 
     stocks = await db_stock.get_stock_list()
-    mov_5 = MovingAverage(5)
-    mov_10 = MovingAverage(10)
-    mov_20 = MovingAverage(20)
-    mov_60 = MovingAverage(60)
-    mov_120 = MovingAverage(120)
-    mov_240 = MovingAverage(240)
-    volume_5 = MovingAverage(5)
-    volume_10 = MovingAverage(10)
-    volume_20 = MovingAverage(20)
 
+    selected_list = []
     # 전 종목 반복
     for stock in stocks:
         # 240일치 데이터를 가져오기
-        dailys = await db_stock.get_daily_by_stock_name(stock.stock_name)
+        dailys = await db_stock.get_daily_by_stock_name(stock.stock_name, "20240313", 60)
+        check_ma_df = True
+        miss_count = 0
         # 240일치 이평선 만들기
+        if len(dailys) == 0 :
+            continue
         for daily in dailys:
-            mov_5.push_data(daily.stck_clpr)
-            mov_10.push_data(daily.stck_clpr)
-            mov_20.push_data(daily.stck_clpr)
-            mov_60.push_data(daily.stck_clpr)
-            mov_120.push_data(daily.stck_clpr)
-            mov_240.push_data(daily.stck_clpr)
-            volume_5.push_data(daily.volume)
-            volume_10.push_data(daily.volume)
-            volume_20.push_data(daily.volume)
-            await db_stock.update_mov_value(
-                stock.stock_name,
-                daily.stck_bsop_date,
-                mov_5.get_moving_average(),
-                mov_10.get_moving_average(),
-                mov_20.get_moving_average(),
-                mov_60.get_moving_average(),
-                mov_120.get_moving_average(),
-                mov_240.get_moving_average(),
-                volume_5.get_moving_average(),
-                volume_10.get_moving_average(),
-                volume_20.get_moving_average()
-            )
-        print(f'{stock.stock_name} daily moving average done')
+            if check_ma_difference(daily.mov_5, daily.mov_20, daily.mov_60, 1.05) is False:
+                miss_count += 1
+        if ((60 - miss_count) / 60) > 0.9:
+            selected_list.append({
+                'stock_name' : stock.stock_name,
+                'stock_code' : stock.stock_code
+            })
+            print(stock.stock_name, stock.stock_code)
     print("done")
+
+def check_ma_difference(ma_1: float, ma_2: float, ma_3: float, c: float):
+    """두 이평선 최대값과 최소값의 차이가 최소값에서 min * c > max인지 확인"""
+    min_val = min(ma_1, ma_2, ma_3)
+    max_val = max(ma_1, ma_2, ma_3)
+    if min_val * c > max_val:
+        return True
+    else:
+        return False
 
 
 if __name__ == '__main__':

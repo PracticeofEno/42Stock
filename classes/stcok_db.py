@@ -29,6 +29,10 @@ class StockDB:
         """주식 테이블 삭제"""
         await self.db.stock.delete_many()
 
+    async def delete_daily_table(self):
+        """일봉 테이블 삭제"""
+        await self.db.daily.delete_many()
+
     async def stock_exist(self, stock_name: str):
         """종목 존재 여부 확인"""
         stock = await self.db.stock.find_first(
@@ -51,15 +55,26 @@ class StockDB:
             }
         )
 
-    async def create_daily_data(self,
-                                stock_name: str,
-                                stck_bsop_date: str,
-                                stck_clpr: float,
-                                stck_oprc: float,
-                                stck_hgpr: float,
-                                stck_lwpr: float,
-                                volume: float,
-                                mount: float):
+    async def create_daily_data(
+        self,
+        stock_name: str,
+        stck_bsop_date: str,
+        stck_clpr: float,
+        stck_oprc: float,
+        stck_hgpr: float,
+        stck_lwpr: float,
+        volume: float,
+        mount: float,
+        mov_5: float,
+        mov_10: float,
+        mov_20: float,
+        mov_60: float,
+        mov_120: float,
+        mov_240: float,
+        volume_5: float,
+        volume_10: float,
+        volume_20: float,
+    ):
         """일별 데이터 생성"""
         await self.db.daily.create({
             "stock_name": stock_name,
@@ -69,7 +84,16 @@ class StockDB:
             "stck_hgpr": float(stck_hgpr),
             "stck_lwpr": float(stck_lwpr),
             "volume": float(volume),
-            "mount": float(mount)
+            "mount": float(mount),
+            "mov_5": mov_5,
+            "mov_10": mov_10,
+            "mov_20": mov_20,
+            "mov_60": mov_60,
+            "mov_120": mov_120,
+            "mov_240": mov_240,
+            "volume_5": volume_5,
+            "volume_10": volume_10,
+            "volume_20": volume_20
         })
 
     async def create_today_data(
@@ -113,7 +137,7 @@ class StockDB:
             "volume_20": volume_20
         })
 
-    async def get_daily_by_stock_name(self, stock_name: str, date: str = None):
+    async def get_daily_by_stock_name(self, stock_name: str, date: str = None, count: int = 240):
         """
         특정 주식의 일별 데이터 가져오기
         
@@ -142,7 +166,7 @@ class StockDB:
                 order={
                     'stck_bsop_date': 'desc'
                 },
-                take=240
+                take=count
             )
             return dailys
 

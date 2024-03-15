@@ -1,5 +1,12 @@
 # 한국투자증권 API를 이용한 토이스탁
 
+## 환경 및 실행방법
+- linux
+- postgresql
+- prisma
+리눅스에서 postgresql, python, prisma 설치 후 pipenv install 로 의존성 설치
+이후 crontab에 add_stock_list.sh, add_today_price.sh 등록
+
 ## 프로젝트 구조
 - classes: 코드에 사용될 클래스 정의 모음
 - scripts: crontab 에 등록되거나 사용할 script 모음
