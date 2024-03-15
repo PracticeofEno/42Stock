@@ -151,7 +151,7 @@ class StockDB:
                     'stock_name': stock_name
                 },
                 order={
-                    'stck_bsop_date': 'asc'
+                    'stck_bsop_date': 'desc'
                 }
             )
             return dailys

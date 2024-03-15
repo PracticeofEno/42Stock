@@ -10,9 +10,9 @@ async def main():
     """
     a
     """
-    v_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjZhZDg5ZWMwLTM5MzItNGExNi04NzhiLTA4OTliNjY3OTg4MiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwNDM2MjA2LCJpYXQiOjE3MTAzNDk4MDYsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.n73zdNdZaD0kBt3DxEnvyF2R6itKpsJiYEdFjEkzNtBPokXAbeb4uTG2lDGafgYg-20wQFbfDMd0Qd6w4eNN7Q" # pylint: disable=C0301
-    ksi_api_client = ksi_api.KsiApi(v_token)
-    await ksi_api_client.get_v_token()
+    ksi_api_client = ksi_api.KsiApi()
+    ksi_api_client.access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjViZjgxYzE1LWQyNDAtNDQ5NC04YjI5LThlNTExN2I1NWE0MyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwNTUxMjM2LCJpYXQiOjE3MTA0NjQ4MzYsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.P6Rl6G5thkZErh6_GUtJcONADUpLWGa4edLIii2uuwXPRzUie-olvAV3c6Z97c_uKuriOrcEd4DJJ7Dj3x7SIg"
+    # await ksi_api_client.get_v_token()
     db_stock = stcok_db.StockDB()
     await db_stock.connect()
     await db_stock.delete_daily_table()
@@ -31,6 +31,8 @@ async def main():
     # 전 종목 반복
     for stock in stocks:
         # 240일치 데이터를 가져오기
+        if stock.stock_code <= "004140":
+            continue
         dailys = await ksi_api_client.get_all_daily_data(stock.stock_code, "20200101")
         dailys.reverse()
         # 240일치 이평선 만들기

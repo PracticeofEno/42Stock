@@ -9,8 +9,9 @@ async def main():
     """
     a
     """
-    # v_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImVjMzdjNjI5LWJkMDEtNDE4Zi04ODUxLWY2MDhmZjMxNDUzOCIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwMzIxNjgzLCJpYXQiOjE3MTAyMzUyODMsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.0jLCei-TF3pojxzw6_iidI-Kj5iO4JH0fmc4S95eWwTSCXwFaFjUqYlbFCLFODSQi28E5Sb7g99bPEYbu7QKSg"
+    v_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjBlOWZkOGEwLTg5OWYtNDMzZC04MmVlLWMzZjlkNWY3MWI1OCIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwNjAwNjQ1LCJpYXQiOjE3MTA1MTQyNDUsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.CrQC36oPoQMJSbf5e0TdMBCyrINnzUqXbhBCTV8DSYwOjuOdAPauwUVZXHO1Ulty7YzxJBzgMhePWy-FqOf-XQ"
     ksi_api_client = ksi_api.KsiApi()
+    ksi_api_client.access_token = v_token
     await ksi_api_client.get_v_token()
     db_stock = stcok_db.StockDB()
     await db_stock.connect()
