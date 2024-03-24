@@ -9,9 +9,9 @@ async def main():
     """
     a
     """
-    v_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjBlOWZkOGEwLTg5OWYtNDMzZC04MmVlLWMzZjlkNWY3MWI1OCIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwNjAwNjQ1LCJpYXQiOjE3MTA1MTQyNDUsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.CrQC36oPoQMJSbf5e0TdMBCyrINnzUqXbhBCTV8DSYwOjuOdAPauwUVZXHO1Ulty7YzxJBzgMhePWy-FqOf-XQ"
+    # v_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjBlOWZkOGEwLTg5OWYtNDMzZC04MmVlLWMzZjlkNWY3MWI1OCIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwNjAwNjQ1LCJpYXQiOjE3MTA1MTQyNDUsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.CrQC36oPoQMJSbf5e0TdMBCyrINnzUqXbhBCTV8DSYwOjuOdAPauwUVZXHO1Ulty7YzxJBzgMhePWy-FqOf-XQ"
     ksi_api_client = ksi_api.KsiApi()
-    ksi_api_client.access_token = v_token
+    # ksi_api_client.access_token = v_token
     await ksi_api_client.get_v_token()
     db_stock = stcok_db.StockDB()
     await db_stock.connect()
@@ -31,6 +31,8 @@ async def main():
     # 전 종목 반복
     for stock in stocks:
         # 240일치 데이터를 가져오기
+        # if stock.stock_code <= "120110":
+        #     continue
         dailys_240 = await db_stock.get_daily_by_stock_name(stock.stock_name, today)
         # 240일치 이평선 만들기
         for daily in dailys_240:

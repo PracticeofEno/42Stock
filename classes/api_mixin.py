@@ -1,17 +1,33 @@
-"""KSI APi Class"""
+"""API를 MIXIN 형태로 사용하게 변경하기 위한 클래스"""
 import os
 from datetime import datetime
 import requests
-from classes.api_mixin import KSIApiMixin
 
-class KsiApi(KSIApiMixin):
-    """KSI Api Class"""
-    def __init__(self, access_token: str = ""):
-        # self.vts = os.getenv('VIR_VTS', '')
-        # self.app_key = os.getenv('VIR_APP_KEY', '')
-        # self.app_secret = os.getenv('VIR_APP_SECRET', '')
-        self.access_token = access_token
-        # print(self.vts, self.app_key, self.app_secret)
+def checking_env(func):
+    """
+    환경변수 체크 데코레이터
+    없다면 .env 파일에서 가져옴
+    """
+    def wrapper(self, *args, **kwargs):
+        if not (hasattr(self, 'vts') and hasattr(self, 'app_key') and hasattr(self, 'app_secret')):
+            self.vts = os.getenv('VIR_VTS')
+            self.app_key = os.getenv('VIR_APP_KEY')
+            self.app_secret = os.getenv('VIR_APP_SECRET')
+        return func(self, *args, **kwargs)
+    return wrapper
+
+class KSIApiMixin:
+    """Mixin 클래스"""
+
+    @checking_env
+    def get_credentials(self, access_token: str = ""):
+        """액세스 토큰을 얻기 위한 함수"""
+        self.get_env()
+        print(self.vts, self.app_key, self.app_secret)
+        # if access_token != "":
+        #     self.access_token = access_token
+        # else:
+        #     self.access_token = ""
 
     async def get_v_token(self):
         """한투증권 access_token 발급하기"""
@@ -71,10 +87,16 @@ class KsiApi(KSIApiMixin):
 
         last_day = end_date
         res_list = []
+        url = f"{self.vts}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?fid_cond_mrkt_div_code={fid_cond_mrkt_div_code}&fid_input_iscd={fid_input_iscd}&fid_input_date_1={fid_input_date_1}&fid_input_date_2={fid_input_date_2}&fid_period_div_code={fid_period_div_code}&fid_org_adj_prc={fid_org_adj_prc}" # pylint: disable=C0301
+        response = requests.get(url=url, headers=headers, timeout=5)
+        if response.status_code == 200:
+            res_json= response.json()
+            return res_json
+        else:
+            raise Exception(f'{stock_code} get_all_daily_data failed') # pylint: disable=C0415 W0719
         # 받아온 데이터
         while last_day >= fid_input_date_1:
-            url = f"{self.vts}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?fid_cond_mrkt_div_code={fid_cond_mrkt_div_code}&fid_input_iscd={fid_input_iscd}&fid_input_date_1={fid_input_date_1}&fid_input_date_2={fid_input_date_2}&fid_period_div_code={fid_period_div_code}&fid_org_adj_prc={fid_org_adj_prc}" # pylint: disable=C0301
-            response = requests.get(url=url, headers=headers, timeout=5)
+            
             if response.status_code == 200:
                 res_json= response.json()
                 stock_name = res_json['output1']['hts_kor_isnm']
@@ -122,9 +144,8 @@ class KsiApi(KSIApiMixin):
             'appsecret': self.app_secret,
             'tr_id': 'FHKST03010100'
         }
-
         # 받아온 데이터
-        url = f"{self.vts}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?fid_cond_mrkt_div_code={fid_cond_mrkt_div_code}&fid_input_iscd={fid_input_iscd}&fid_input_date_1={fid_input_date_1}&fid_input_date_2={fid_input_date_2}&fid_period_div_code={fid_period_div_code}&fid_org_adj_prc={fid_org_adj_prc}"
+        url = f"{self.vts}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?fid_cond_mrkt_div_code={fid_cond_mrkt_div_code}&fid_input_iscd={fid_input_iscd}&fid_input_date_1={fid_input_date_1}&fid_input_date_2={fid_input_date_2}&fid_period_div_code={fid_period_div_code}&fid_org_adj_prc={fid_org_adj_prc}" # pylint: disable=C0301
         response = requests.get(url=url, headers=headers, timeout=5)
         if response.status_code == 200:
             res_json= response.json()
@@ -170,4 +191,3 @@ class KsiApi(KSIApiMixin):
                 return False
             else:
                 return True
-            
