@@ -13,48 +13,73 @@ def checking_env(func):
             self.vts = os.getenv('VIR_VTS')
             self.app_key = os.getenv('VIR_APP_KEY')
             self.app_secret = os.getenv('VIR_APP_SECRET')
+        elif self.vts == '' or self.app_key == '' or self.app_secret == '':
+            self.vts = os.getenv('VIR_VTS')
+            self.app_key = os.getenv('VIR_APP_KEY')
+            self.app_secret = os.getenv('VIR_APP_SECRET')
+            return
         return func(self, *args, **kwargs)
     return wrapper
+
+def checking_access_token(func):
+    """
+    access_token 체크 데코레이터
+    없다면 get_v_token() 호출
+    """
+    def wrapper(self, *args, **kwargs):
+        if hasattr(self, 'access_token') is False:
+            self.access_token = get_access_token(self.vts, self.app_key, self.app_secret)
+        else:
+            if check_request(self.access_token, self.app_key, self.app_secret) is False:
+                self.access_token = get_access_token(self.vts, self.app_key, self.app_secret)
+        return func(self, *args, **kwargs)
+    return wrapper
+
+def check_request(access_token: str, app_key: str, app_secret: str):
+    """현재가격 가져오기"""
+    url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-price?fid_cond_mrkt_div_code=J&fid_input_iscd=005930" # pylint: disable=C0301
+    payload = ""
+    headers = {
+        'content-type': 'application/json',
+        'authorization': 'Bearer ' + access_token,
+        'appkey': app_key,
+        'appsecret': app_secret,
+        'tr_id': 'FHKST03010100'
+    }
+    response = requests.request("GET", url, headers=headers, data=payload, timeout=5)
+    if response.status_code == 200:
+        return True
+    return False
+
+def get_access_token(vts: str, app_key: str, app_secret: str):
+    """한투증권 서버로부터 access_token을 받아오는 함수"""
+    url = vts + "/oauth2/tokenP"
+    response = requests.post(url=url, json={
+        "grant_type": "client_credentials",
+        "appkey": app_key,
+        "appsecret": app_secret
+    }, headers={
+        "content-type": "application/json",
+    },timeout=5)
+    if response.status_code != 200:
+        print(response.status_code)
+        raise Exception("get access_token failed") # pylint: disable=C0415 W0719
+    res = response.json()
+    return res['access_token']
 
 class KSIApiMixin:
     """Mixin 클래스"""
 
     @checking_env
-    def get_credentials(self, access_token: str = ""):
+    @checking_access_token
+    def get_credentials(self):
         """액세스 토큰을 얻기 위한 함수"""
-        self.get_env()
         print(self.vts, self.app_key, self.app_secret)
+        print(self.access_token)
         # if access_token != "":
         #     self.access_token = access_token
         # else:
         #     self.access_token = ""
-
-    async def get_v_token(self):
-        """한투증권 access_token 발급하기"""
-        self.get_credentials()
-
-        # 이미 설정된 토큰이 있다면 흐름 종료
-        if self.access_token != "":
-            return
-        # 환경변수가 없다면 흐름 종료
-        if self.vts == '' or self.app_key == '' or self.app_secret == '':
-            print("vts, app_key, app_secret not found. check .env file.")
-            return
-        # API를 통해 access_token 발급
-        url = self.vts + "/oauth2/tokenP"
-        response = requests.post(url=url, json={
-            "grant_type": "client_credentials",
-            "appkey": self.app_key,
-            "appsecret": self.app_secret
-        }, headers={
-            "content-type": "application/json",
-        },timeout=5)
-        if response.status_code != 200:
-            print(response.status_code)
-            return
-        res = response.json()
-        self.access_token = res['access_token']
-        print(self.access_token)
 
     async def get_all_daily_data(
         self,

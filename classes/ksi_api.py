@@ -7,38 +7,15 @@ from classes.api_mixin import KSIApiMixin
 class KsiApi(KSIApiMixin):
     """KSI Api Class"""
     def __init__(self, access_token: str = ""):
-        # self.vts = os.getenv('VIR_VTS', '')
-        # self.app_key = os.getenv('VIR_APP_KEY', '')
-        # self.app_secret = os.getenv('VIR_APP_SECRET', '')
-        self.access_token = access_token
-        # print(self.vts, self.app_key, self.app_secret)
+        self.app_key = ""
+        self.app_secret = ""
+        self.vts = ""
+        if access_token != "":
+            self.access_token = access_token
 
-    async def get_v_token(self):
-        """한투증권 access_token 발급하기"""
+    async def set_credentails(self):
+        """Mixin을 사용하여 환경변수와 액세스토큰 설정"""
         self.get_credentials()
-
-        # 이미 설정된 토큰이 있다면 흐름 종료
-        if self.access_token != "":
-            return
-        # 환경변수가 없다면 흐름 종료
-        if self.vts == '' or self.app_key == '' or self.app_secret == '':
-            print("vts, app_key, app_secret not found. check .env file.")
-            return
-        # API를 통해 access_token 발급
-        url = self.vts + "/oauth2/tokenP"
-        response = requests.post(url=url, json={
-            "grant_type": "client_credentials",
-            "appkey": self.app_key,
-            "appsecret": self.app_secret
-        }, headers={
-            "content-type": "application/json",
-        },timeout=5)
-        if response.status_code != 200:
-            print(response.status_code)
-            return
-        res = response.json()
-        self.access_token = res['access_token']
-        print(self.access_token)
 
     async def get_all_daily_data(
         self,
