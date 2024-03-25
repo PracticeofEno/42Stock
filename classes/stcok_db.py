@@ -16,14 +16,16 @@ class StockDB:
         stocks = await self.db.stock.find_many()
         return stocks
 
-    async def create_stock(self, stock_name: str, stock_code: str):
+    async def create_stock(self, stock_name: str, stock_code: str, dart_code: str):
         """주식 추가"""
         await self.db.stock.create(
             {
                 'stock_name': stock_name,
                 'stock_code': stock_code,
+                'dart_code': dart_code,
             }
         )
+
 
     async def delete_stock_table(self):
         """주식 테이블 삭제"""
