@@ -1,7 +1,5 @@
 """테스트"""
 import asyncio
-from datetime import datetime
-from prisma import Prisma
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
@@ -10,9 +8,9 @@ async def main():
     """
     a
     """
-    ksi_api_client = ksi_api.KsiApi()
-    ksi_api_client.access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImUyOGNmZGFhLTJjYjQtNDdhYS1iOTZlLTFjOWYxMjJkMjM3NSIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwNjM4Mzc3LCJpYXQiOjE3MTA1NTE5NzcsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.GMHtMip5kWnne555bRR6b4IwBqMMcK663o63zRrPwBVHdjrlgpO1Q5Kmdi0vsvNH4WiyD3ALa5Md73wtR6o5qA"
-    await ksi_api_client.get_v_token()
+    access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjQxY2QxN2VlLTBiNjItNDdiMy1iMmVmLTE0ODJhMTFiOWVjMSIsImlzcyI6InVub2d3IiwiZXhwIjoxNzExMzgwNTMwLCJpYXQiOjE3MTEyOTQxMzAsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.az3guQ38vv-6L3iQgJHBhD0cwqKyrgJH-eyirAF0eHamvuzWBycfk1dOSnulYjntyfinlBUhCUjG-orcMf6VfA" # pylint: disable=C0301
+    ksi_api_client = ksi_api.KsiApi(access_token=access_token)
+    await ksi_api_client.set_credentails()
     db_stock = stcok_db.StockDB()
     await db_stock.connect()
     await db_stock.delete_daily_table()
@@ -29,43 +27,56 @@ async def main():
     volume_20 = moving_average.MovingAverage(20)
 
     # 전 종목 반복
-    for stock in stocks:
-        # 240일치 데이터를 가져오기
-        if stock.stock_code <= "451060":
-            continue
-        dailys = await ksi_api_client.get_all_daily_data(stock.stock_code, "20200101")
-        dailys.reverse()
-        # 240일치 이평선 만들기
-        for daily in dailys:
-            mov_5.push_data(float(daily['stck_clpr']))
-            mov_10.push_data(float(daily['stck_clpr']))
-            mov_20.push_data(float(daily['stck_clpr']))
-            mov_60.push_data(float(daily['stck_clpr']))
-            mov_120.push_data(float(daily['stck_clpr']))
-            mov_240.push_data(float(daily['stck_clpr']))
-            volume_5.push_data(float(daily['volume']))
-            volume_10.push_data(float(daily['volume']))
-            volume_20.push_data(float(daily['volume']))
-            await db_stock.create_daily_data(
-                stock.stock_name,
-                daily['stck_bsop_date'],
-                float(daily['stck_clpr']),
-                float(daily['stck_oprc']),
-                float(daily['stck_hgpr']),
-                float(daily['stck_lwpr']),
-                float(daily['volume']),
-                float(daily['mount']),
-                mov_5.get_moving_average(),
-                mov_10.get_moving_average(),
-                mov_20.get_moving_average(),
-                mov_60.get_moving_average(),
-                mov_120.get_moving_average(),
-                mov_240.get_moving_average(),
-                volume_5.get_moving_average(),
-                volume_10.get_moving_average(),
-                volume_20.get_moving_average()
-            )
-        print(f'{stock.stock_name} daily moving average done')
+    while len(stocks) > 0 :
+        mov_5.clear()
+        mov_10.clear()
+        mov_20.clear()
+        mov_60.clear()
+        mov_120.clear()
+        mov_240.clear()
+        volume_5.clear()
+        volume_10.clear()
+        volume_20.clear()
+        try:
+            # 240일치 데이터를 가져오기
+            stock = stocks[0]
+            dailys = await ksi_api_client.get_all_daily_data(stock.stock_code, "20200101")
+            dailys.reverse()
+            # 240일치 이평선 만들기
+            for daily in dailys:
+                mov_5.push_data(float(daily['stck_clpr']))
+                mov_10.push_data(float(daily['stck_clpr']))
+                mov_20.push_data(float(daily['stck_clpr']))
+                mov_60.push_data(float(daily['stck_clpr']))
+                mov_120.push_data(float(daily['stck_clpr']))
+                mov_240.push_data(float(daily['stck_clpr']))
+                volume_5.push_data(float(daily['volume']))
+                volume_10.push_data(float(daily['volume']))
+                volume_20.push_data(float(daily['volume']))
+                await db_stock.create_daily_data(
+                    stock.stock_name,
+                    daily['stck_bsop_date'],
+                    float(daily['stck_clpr']),
+                    float(daily['stck_oprc']),
+                    float(daily['stck_hgpr']),
+                    float(daily['stck_lwpr']),
+                    float(daily['volume']),
+                    float(daily['mount']),
+                    mov_5.get_moving_average(),
+                    mov_10.get_moving_average(),
+                    mov_20.get_moving_average(),
+                    mov_60.get_moving_average(),
+                    mov_120.get_moving_average(),
+                    mov_240.get_moving_average(),
+                    volume_5.get_moving_average(),
+                    volume_10.get_moving_average(),
+                    volume_20.get_moving_average()
+                )
+            print(f'{stock.stock_name} daily moving average done')
+            stocks.remove(stock)
+        except: # pylint: disable=W0702
+            print(f'{stock.stock_name} get data failed. retry 5 seconds later')
+            await asyncio.sleep(5)
     print("done")
 
 

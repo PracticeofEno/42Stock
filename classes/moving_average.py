@@ -25,3 +25,7 @@ class MovingAverage:
         if self.check():
             return round(sum(self.list) / self.mov_avg)
         return 0
+
+    def clear(self):
+        """데이터 초기화"""
+        self.list.clear()
