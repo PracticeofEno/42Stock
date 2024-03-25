@@ -47,10 +47,10 @@ async def main() -> None:
 
     # 상폐된 종목이라면 삭제
     get_stocks = await db_stock.get_stock_list()
-    ksi_api_client = ksi_api.KsiApi()
-    ksi_api_client.access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImUyOGNmZGFhLTJjYjQtNDdhYS1iOTZlLTFjOWYxMjJkMjM3NSIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEwNjM4Mzc3LCJpYXQiOjE3MTA1NTE5NzcsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.GMHtMip5kWnne555bRR6b4IwBqMMcK663o63zRrPwBVHdjrlgpO1Q5Kmdi0vsvNH4WiyD3ALa5Md73wtR6o5qA"
+    access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjQxY2QxN2VlLTBiNjItNDdiMy1iMmVmLTE0ODJhMTFiOWVjMSIsImlzcyI6InVub2d3IiwiZXhwIjoxNzExMzgwNTMwLCJpYXQiOjE3MTEyOTQxMzAsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.az3guQ38vv-6L3iQgJHBhD0cwqKyrgJH-eyirAF0eHamvuzWBycfk1dOSnulYjntyfinlBUhCUjG-orcMf6VfA" # pylint: disable=C0301
+    ksi_api_client = ksi_api.KsiApi(access_token=access_token)
+    await ksi_api_client.set_credentails()
     cant_trade_stocks = []
-    await ksi_api_client.get_v_token()
     for get_stock in get_stocks:
         stock_names = [stock['stock_name'] for stock in stocks]
         if get_stock.stock_name not in stock_names:

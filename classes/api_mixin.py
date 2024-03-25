@@ -124,8 +124,6 @@ class KSIApiMixin:
             'tr_id': 'FHKST03010100'
         }
 
-        last_day = end_date
-        res_list = []
         url = f"{self.vts}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice?fid_cond_mrkt_div_code={fid_cond_mrkt_div_code}&fid_input_iscd={fid_input_iscd}&fid_input_date_1={fid_input_date_1}&fid_input_date_2={fid_input_date_2}&fid_period_div_code={fid_period_div_code}&fid_org_adj_prc={fid_org_adj_prc}" # pylint: disable=C0301
         response = requests.get(url=url, headers=headers, timeout=5)
         if response.status_code == 200:
@@ -133,31 +131,3 @@ class KSIApiMixin:
             return res_json
         else:
             raise Exception(f'{stock_code} get_all_daily_data failed') # pylint: disable=C0415 W0719
-        # 받아온 데이터
-        while last_day >= fid_input_date_1:
-            
-            if response.status_code == 200:
-                res_json= response.json()
-                stock_name = res_json['output1']['hts_kor_isnm']
-                dailys = res_json['output2']
-                for daily in dailys:
-                    if 'stck_bsop_date' not in daily:
-                        print(f'{stock_code} is done')
-                        last_day = str(int(fid_input_date_1) - 1)
-                        break
-                    res_list.append({
-                        "stock_name": stock_name,
-                        "stck_bsop_date": daily['stck_bsop_date'],
-                        "stck_clpr": daily['stck_clpr'],
-                        "stck_oprc": daily['stck_oprc'],
-                        "stck_hgpr": daily['stck_hgpr'],
-                        "stck_lwpr": daily['stck_lwpr'],
-                        "volume": daily['acml_vol'],
-                        "mount": daily['acml_tr_pbmn']
-                    })
-                    last_day = daily['stck_bsop_date']
-            else:
-                print(response.status_code)
-                break
-            fid_input_date_2 = str(int(last_day) - 1)
-        return res_list
