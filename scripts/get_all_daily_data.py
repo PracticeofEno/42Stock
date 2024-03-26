@@ -1,4 +1,4 @@
-"""테스트"""
+"""DB에 있는 모든 Stock의 20200101 까지의 일봉 데이터 가져오는 스크립트"""
 import asyncio
 import os
 import sys
