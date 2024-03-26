@@ -1,4 +1,5 @@
 """API를 MIXIN 형태로 사용하게 변경하기 위한 클래스"""
+from datetime import datetime
 import os
 import requests
 
@@ -19,5 +20,17 @@ def checking_env(func):
 class DartApiMixin:
     """Dart Mixin 클래스"""
     @checking_env
-    async def tmp(self):
-        pass
+    async def search_disclosure(self, date: str):
+        """공시 검색"""
+        url = (f"https://opendart.fss.or.kr/"
+               f"api/list.json?crtfc_key={self.app_key}"
+               f"&bgn_de={date}"
+               f"&end_de={date}"
+               f"&corp_cls=Y"
+               f"&page_no=1"
+               f"&page_count=10")
+        response = requests.get(url=url, timeout=5)
+        if response.status_code == 200:
+            res_json = response.json()
+            return res_json
+        return None

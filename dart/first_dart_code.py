@@ -13,8 +13,8 @@ def download_dart_code(base: str):
     dart_api_key = os.getenv('DART_API_KEY')
     print(dart_api_key)
     url = f"https://opendart.fss.or.kr/api/corpCode.xml?crtfc_key={dart_api_key}"
+    
     urllib.request.urlretrieve(url, base + "/dart/dart_code.zip")
-
     os.chdir(base + "/dart")
     kospi_zip = zipfile.ZipFile('dart_code.zip')
     kospi_zip.extractall()
@@ -75,6 +75,7 @@ async def main():
     ksi_api_client = ksi_api.KsiApi(access_token=access_token)
     await ksi_api_client.set_credentails()
     stock_db = stcok_db.StockDB()
+    await stock_db.connect()
     base_dir = os.getcwd()
     download_dart_code(base_dir)
     await stock_code_update(base_dir, stock_db, ksi_api_client)
