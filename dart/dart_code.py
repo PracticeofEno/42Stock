@@ -5,8 +5,6 @@ import sys
 import urllib.request
 import zipfile
 import xml.etree.ElementTree as ET
-
-import prisma
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from classes import stcok_db, ksi_api # pylint: disable=C0413
 
@@ -26,8 +24,9 @@ def download_dart_code(base: str):
     if os.path.exists("dart_code.zip"):
         os.remove("dart_code.zip")
 
-async def stock_code_update(base: str, stock_db: stcok_db.StockDB):
+async def stock_code_update(base: str, stock_db: stcok_db.StockDB, ksi_api_client: ksi_api.KsiApi):
     """매일 8시 30분에 실행되는 종목코드 업데이트"""
+    await stock_db.delete_stock_table()
     tree = ET.parse(f"{base}/dart/CORPCODE.xml")
     root = tree.getroot()
     count = 0
@@ -52,11 +51,14 @@ async def stock_code_update(base: str, stock_db: stcok_db.StockDB):
 
 async def main():
     """진입점""" 
+    access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijk4ZjQ4MjBmLTJkMjItNDlhNS1hMDhjLTNlYzM5YTQ3ZjE1NiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzExNTA4MTI1LCJpYXQiOjE3MTE0MjE3MjUsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.Iu83s49vC7gAbEkUZHD209P3MdvK80SSehxt5M-7YUNRr312nNhYR1UIKWZnE-BjvqsIYSkZ1pZeP8gAm5F0yQ" # pylint: disable=C0301
+    ksi_api_client = ksi_api.KsiApi(access_token=access_token)
+    await ksi_api_client.set_credentails()
     stock_db = stcok_db.StockDB()
     await stock_db.connect()
     base_dir = os.getcwd()
     download_dart_code(base_dir)
-    await stock_code_update(base_dir, stock_db)
+    await stock_code_update(base_dir, stock_db, ksi_api_client)
 
 if __name__ == '__main__':
     asyncio.run(main())

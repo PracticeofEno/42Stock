@@ -21,6 +21,18 @@ class KsiApi(KSIApiMixin):
         """현재 주식 가격 가져오기"""
         return await super().get_current_price(stock_code)
 
+    async def get_stock_info(self, stock_code: str):
+        """주식 기본 정보 조회"""
+        return await super().stock_info(stock_code)
+
+    async def check_delisting(self, stock_code:str) -> bool:
+        """종목의 상폐여부 조회"""
+        data = await self.get_stock_info(stock_code)
+        stock_info = data['output']
+        if stock_info['scts_mket_lstg_abol_dt'] == "":
+            return True
+        return False
+
     async def get_all_daily_data(
         self,
         stock_code: str,

@@ -81,6 +81,27 @@ class KSIApiMixin:
         # else:
         #     self.access_token = ""
 
+    async def stock_info(self, stock_code: str):
+        """주식 기본 정보 조회"""
+        url = (
+            f"{self.vts}/uapi/domestic-stock/v1/quotations/"
+            f"search-stock-info?PDNO={stock_code}&PRDT_TYPE_CD=300"
+        )
+        payload = ""
+        headers = {
+          'content-type': 'application/json',
+          'authorization': f"Bearer {self.access_token}",
+          'appkey': self.app_key,
+          'appsecret': self.app_secret,
+          'tr_id': 'CTPF1002R',
+          'custtype': 'P'
+        }
+        response = requests.request("GET", url, headers=headers, data=payload, timeout=5)
+        if response.status_code == 200:
+            res_json = response.json()
+            return res_json
+        raise Exception(f"{stock_code} stock_info failed") # pylint: disable=C0415 W0719
+
     async def get_current_price(self, stock_code: str):
         """현재 주식 가격을 가져옴"""
         url = f"{self.vts}/uapi/domestic-stock/v1/quotations/inquire-price?fid_cond_mrkt_div_code=J&fid_input_iscd={stock_code}" # pylint: disable=C0301
