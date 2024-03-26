@@ -47,8 +47,6 @@ async def stock_code_update(base: str, stock_db: stcok_db.StockDB, ksi_api_clien
             'modify_date': modify_date
         })
 
-    db_list = await stock_db.get_stock_list()
-    db_list = [stock.stock_name for stock in db_list]
     while len(parsed_list) > 0:
         stock = parsed_list[0]
         try:
