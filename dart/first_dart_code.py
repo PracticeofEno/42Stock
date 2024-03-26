@@ -75,7 +75,6 @@ async def main():
     ksi_api_client = ksi_api.KsiApi(access_token=access_token)
     await ksi_api_client.set_credentails()
     stock_db = stcok_db.StockDB()
-    await stock_db.connect()
     base_dir = os.getcwd()
     download_dart_code(base_dir)
     await stock_code_update(base_dir, stock_db, ksi_api_client)

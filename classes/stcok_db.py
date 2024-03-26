@@ -7,9 +7,9 @@ class StockDB:
         db = Prisma()
         self.db = db
 
-    async def connect(self):
+    def connect(self):
         """DB에 연결"""
-        await self.db.connect()
+        self.db.connect()
 
     async def get_stock_list(self):
         """주식 리스트 가져오기"""
