@@ -1,7 +1,6 @@
 """테스트"""
 import asyncio
 from classes.ksi_api import KsiApi
-import xml.etree.ElementTree as ET
 
 async def main():
     """

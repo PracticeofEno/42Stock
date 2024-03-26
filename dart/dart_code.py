@@ -1,4 +1,4 @@
-"""다트의 고유번호 가져오는 파이썬 파일"""
+"""dart_code와 유사하지만 dart_code는 매일 실행되면서 유지보수, first_init은 DB밀고 다시 씀"""
 import asyncio
 import os
 import sys
@@ -25,11 +25,13 @@ def download_dart_code(base: str):
         os.remove("dart_code.zip")
 
 async def stock_code_update(base: str, stock_db: stcok_db.StockDB, ksi_api_client: ksi_api.KsiApi):
-    """매일 8시 30분에 실행되는 종목코드 업데이트"""
-    await stock_db.delete_stock_table()
+    """
+    매일 8시 30분에 실행되는 종목코드 업데이트
+    """
+    # stock 테이블 초기화
     tree = ET.parse(f"{base}/dart/CORPCODE.xml")
     root = tree.getroot()
-    count = 0
+    parsed_list = []
     # 'corp_code', 'corp_name' 등의 요소를 가져오고 출력합니다.
     for list_element in root.findall('.//list'):
         corp_code = list_element.find('corp_code').text
@@ -38,16 +40,41 @@ async def stock_code_update(base: str, stock_db: stcok_db.StockDB, ksi_api_clien
         modify_date = list_element.find('modify_date').text
         if stock_code == ' ':
             continue
+        parsed_list.append({
+            'corp_code': corp_code,
+            'corp_name': corp_name,
+            'stock_code': stock_code,
+            'modify_date': modify_date
+        })
+
+    db_list = await stock_db.get_stock_list()
+    db_list = [stock.stock_name for stock in db_list]
+    while len(parsed_list) > 0:
+        stock = parsed_list[0]
         try:
-            await stock_db.create_stock(corp_name, stock_code, corp_code)
-            print("corp_code:", corp_code)
-            print("corp_name:", corp_name)
-            print("stock_code:", stock_code)
-            print("modify_date:", modify_date)
-        except: # pylint: disable=W0702
-            pass
-        count += 1
-    print(count)
+            is_delisted = await ksi_api_client.check_delisting(stock['stock_code'])
+            if is_delisted:
+                print(f"{stock['corp_name']} is delisted")
+                parsed_list.remove(stock)
+                await stock_db.stock_remove(stock['corp_name'])
+                continue
+            exist = await stock_db.stock_exist(stock['corp_name'])
+            if exist:
+                parsed_list.remove(stock)
+                continue
+            await stock_db.create_stock(stock['corp_name'], stock['stock_code'], stock['corp_code'])
+            print("corp_code:", stock['corp_code'])
+            print("corp_name:", stock['corp_name'])
+            print("stock_code:", stock['stock_code'])
+            print("modify_date:", stock['modify_date'])
+            parsed_list.remove(stock)
+        except Exception as e: # pylint: disable=W0702 W0718
+            if isinstance(e, ConnectionRefusedError):
+                print(f"Error: request failed {stock['corp_name']} wait 5 seconds")
+                await asyncio.sleep(5)
+            else:
+                print(e)
+                await asyncio.sleep(5)
 
 async def main():
     """진입점""" 

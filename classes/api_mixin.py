@@ -100,7 +100,7 @@ class KSIApiMixin:
         if response.status_code == 200:
             res_json = response.json()
             return res_json
-        raise Exception(f"{stock_code} stock_info failed") # pylint: disable=C0415 W0719
+        raise ConnectionRefusedError() # pylint: disable=C0415 W0719
 
     async def get_current_price(self, stock_code: str):
         """현재 주식 가격을 가져옴"""

@@ -26,10 +26,17 @@ class KsiApi(KSIApiMixin):
         return await super().stock_info(stock_code)
 
     async def check_delisting(self, stock_code:str) -> bool:
-        """종목의 상폐여부 조회"""
+        """
+        종목의 상폐여부 조회
+        True = 상폐
+        False = 상장
+        """
         data = await self.get_stock_info(stock_code)
         stock_info = data['output']
-        if stock_info['scts_mket_lstg_abol_dt'] == "":
+        if (stock_info['scts_mket_lstg_abol_dt'] != ""
+            or stock_info['kosdaq_mket_lstg_abol_dt'] != ""
+            or stock_info['tr_stop_yn'] == "Y"
+            or stock_info['cpta'] == "0"):
             return True
         return False
 
@@ -49,7 +56,11 @@ class KsiApi(KSIApiMixin):
         # 받아온 데이터
         while last_day >= start_day:
             res_json = await super().get_all_daily_data(stock_code, start_day, last_day)
-            stock_name = res_json['output1']['hts_kor_isnm']
+            output = res_json['output1']
+            # dart에는 있지만 실제 상장되지 않았을 경우(모종의 이유로 상장일은 있으나 현재는 비상장인 경우)
+            if 'hts_kor_isnm' not in output:
+                break
+            stock_name = output['hts_kor_isnm']
             dailys = res_json['output2']
             for daily in dailys:
                 if 'stck_bsop_date' not in daily:
