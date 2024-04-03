@@ -1,5 +1,6 @@
 """테스트"""
 import asyncio
+import os
 from datetime import datetime
 from classes.ksi_api import KsiApi
 from dart.dart_api import DartApi
@@ -13,11 +14,11 @@ async def main():
     # await ksi_api_client.set_credentails()
     # result = await ksi_api_client.check_delisting("036720")
     # print(result)
-
+    
     dart_api_client = DartApi()
     await dart_api_client.db_connect()
     today = datetime.today().strftime('%Y%m%d')
-    response = await dart_api_client.search_disclosure("20240326")
+    response = await dart_api_client.search_disclosure("20240403")
     print(response)
 if __name__ == '__main__':
     asyncio.run(main())

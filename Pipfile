@@ -7,6 +7,7 @@ name = "pypi"
 prisma = "*"
 python-dotenv = "*"
 requests = "*"
+pymongo = "*"
 
 [dev-packages]
 

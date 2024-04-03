@@ -26,7 +26,7 @@ class DartApiMixin:
                f"api/list.json?crtfc_key={self.app_key}"
                f"&bgn_de={date}"
                f"&end_de={date}"
-               f"&corp_cls=Y"
+               f"&pblntf_ty=A"
                f"&page_no=1"
                f"&page_count=10")
         response = requests.get(url=url, timeout=5)

@@ -76,7 +76,7 @@ async def stock_code_update(base: str, stock_db: stcok_db.StockDB, ksi_api_clien
 
 async def main():
     """진입점""" 
-    access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijk4ZjQ4MjBmLTJkMjItNDlhNS1hMDhjLTNlYzM5YTQ3ZjE1NiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzExNTA4MTI1LCJpYXQiOjE3MTE0MjE3MjUsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.Iu83s49vC7gAbEkUZHD209P3MdvK80SSehxt5M-7YUNRr312nNhYR1UIKWZnE-BjvqsIYSkZ1pZeP8gAm5F0yQ" # pylint: disable=C0301
+    access_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImM5N2U4ODRlLTk4MGEtNDI4OC05ZDZkLTRmNWJkMjE3Mjc3NiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzEyMTcwNTIwLCJpYXQiOjE3MTIwODQxMjAsImp0aSI6IlBTeklrNTR4ZGNoakJyU21rczhVMWYwam5mVzRBdzZYU0pxNCJ9.RlbFyBwnO9nz1bDRXNX7pKvLd1v5Rb0-awn8j7lBZDaME-EEFZMNnhIUJuKM2eG3_6Z3c05GT3J5Pi6tR-0Viw" # pylint: disable=C0301
     ksi_api_client = ksi_api.KsiApi(access_token=access_token)
     await ksi_api_client.set_credentails()
     stock_db = stcok_db.StockDB()

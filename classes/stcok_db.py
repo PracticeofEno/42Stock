@@ -1,11 +1,16 @@
 """repository Class"""
 from prisma import Prisma
+import pymongo
 
 class StockDB:
     """Repository Class"""
     def __init__(self):
         db = Prisma()
         self.db = db
+        myclient = pymongo.MongoClient("mongodb://admin:dkflfkd@mongo:27017/")
+        dblist = myclient.list_database_names()
+        if "42Stock" not in dblist:
+            raise Exception("mongoDB의 '42Stock'이 존재하지 않습니다.") # pylint: disable=W0719
 
     async def connect(self):
         """DB에 연결"""
@@ -25,7 +30,6 @@ class StockDB:
                 'dart_code': dart_code,
             }
         )
-
 
     async def delete_stock_table(self):
         """주식 테이블 삭제"""
@@ -206,3 +210,10 @@ class StockDB:
                 "volume_20": volume_20
             }
         )
+
+    ###
+    # 몽고DB 관련 함수
+    ###
+    async def tmp(self):
+        """임시"""
+        return
